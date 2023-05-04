@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@solana/web3.js": "^1.75.0",
+    "@types/mysql": "^2.15.21",
     "dotenv": "^16.0.3",
     "mysql": "^2.18.1"
   }
