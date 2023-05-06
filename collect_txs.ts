@@ -24,7 +24,6 @@ async function main() {
         database : process.env.DB_NAME,
         port     : parseInt(process.env.DB_PORT),
     });
-    let collection = JSON.parse(process.env.COLLECTION);
     db.connect();
     let rows = await new Promise<any[]>((resolve) => {
         db.query("select id, sig from txs where id not in (select id from tx_details)", async (err, rows) => {
@@ -39,7 +38,7 @@ async function main() {
         let slice = rows.slice(i, i + 250);
         let sigs = slice.map(x => x.sig);
         let ids = slice.map(x => x.id);
-        let details = await rpc.getParsedTransactions(sigs);
+        let details = await rpc.getParsedTransactions(sigs, {maxSupportedTransactionVersion: 0});
         for (let detail of details) {
             await new Promise<void>((resolve) => {
                 db.query("insert into tx_details (id, details) values (?, ?)", [ids.shift(), JSON.stringify(detail)], (err) => {
