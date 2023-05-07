@@ -150,8 +150,7 @@ ALTER TABLE `tx_details`
 -- Indexes for table `tx_history`
 --
 ALTER TABLE `tx_history`
-  ADD UNIQUE KEY `sig` (`sig`),
-  ADD KEY `address` (`address`,`block_time`) USING BTREE;
+  ADD KEY `address` (`address`,`sig`) USING BTREE;
 
 --
 -- AUTO_INCREMENT for dumped tables
