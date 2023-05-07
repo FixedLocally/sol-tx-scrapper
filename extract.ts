@@ -65,7 +65,7 @@ async function main() {
     });
     db.connect();
     let rows = await new Promise<any[]>((resolve) => {
-        db.query("select id, details from tx_details where prio_fee_lamports<0 or has_memo<0 or is_program_invocation<0 or is_simple_transfer<0 or is_single_effective_ix<0 or source=''", async (err, rows) => {
+        db.query("select id, details from tx_details where prio_fee_lamports<0 or has_memo<0 or is_program_invocation<0 or is_simple_transfer<0 or is_single_effective_ix<0 or source='' or block_time<0", async (err, rows) => {
             if (err) {
                 throw err;
             }
@@ -96,8 +96,10 @@ async function main() {
         let isSingleEffectiveIx = details.transaction.message.instructions.filter((x: any) => x.programId != COMPUTE_BUDGET_PROGRAM_ID).length === 1;
         // source and destination
         let [source, destination] = extractTarget(details);
+        // block time
+        let blockTime = details.blockTime;
         await new Promise<void>((resolve) => {
-            db.query("update tx_details set prio_fee_lamports=?, has_memo=?, is_program_invocation=?, is_simple_transfer=?, is_single_effective_ix=?, source=?, destination=? where id=?", [prioFee, hasMemo, isProgramInvocation, isSimpleTransfer, isSingleEffectiveIx, source, destination, id], (err) => {
+            db.query("update tx_details set prio_fee_lamports=?, has_memo=?, is_program_invocation=?, is_simple_transfer=?, is_single_effective_ix=?, source=?, destination=?, block_time=? where id=?", [prioFee, hasMemo, isProgramInvocation, isSimpleTransfer, isSingleEffectiveIx, source, destination, blockTime, id], (err) => {
                 if (err) {
                     throw err;
                 }
