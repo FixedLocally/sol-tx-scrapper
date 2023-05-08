@@ -22,7 +22,7 @@ async function main() {
     });
     db.connect();
     let rows = await new Promise<any[]>((resolve) => {
-        db.query("select id, details from tx_details where tx_value<0", async (err, rows) => {
+        db.query("select t1.id, details, t2.dataset from tx_details t1, txs t2 where tx_value<0 and t1.id=t2.id", async (err, rows) => {
             if (err) {
                 throw err;
             }
@@ -71,16 +71,18 @@ async function main() {
             let pre = preTokenBalances[pri];
             let post = postTokenBalances[poi];
             if (!pre && !post) break;
-            if (!pre || pre.accountIndex > post.accountIndex) {
+            if ((!pre && post) || (pre && post && pre.accountIndex > post.accountIndex)) {
                 // post missing, add pre to post
                 preTokenBalances.push({...post, uiTokenAmount: {...post.uiTokenAmount, uiAmountString: "0", amount: "0",  uiAmount: 0}});
+                preTokenBalances.sort((a, b) => a.accountIndex - b.accountIndex);
                 ++poi;
                 ++pri;
                 continue;
             }
-            if (!post || pre.accountIndex < post.accountIndex) {
+            if ((!post && pre) || (pre && post && pre.accountIndex < post.accountIndex)) {
                 // post missing, add post to pre
                 postTokenBalances.push({...pre, uiTokenAmount: {...pre.uiTokenAmount, uiAmountString: "0", amount: "0",  uiAmount: 0}});
+                postTokenBalances.sort((a, b) => a.accountIndex - b.accountIndex);
                 ++poi;
                 ++pri;
                 continue;
@@ -102,7 +104,9 @@ async function main() {
             let preBal = parseFloat(pre.uiTokenAmount.uiAmountString);
             let postBal = parseFloat(post.uiTokenAmount.uiAmountString);
             if (preBal !== postBal) {
-                mints.add(mint);
+                if (row.dataset == "solend-user" || row.dataset == "mango-user" || row.dataset == "drift-user") {
+                    mints.add(mint);
+                }
                 tokenDiffAbsSum[mint] = (tokenDiffAbsSum[mint] || 0) + Math.abs(preBal - postBal);
                 tokenDiffSum[mint] = (tokenDiffSum[mint] || 0) + (postBal - preBal);
             }
